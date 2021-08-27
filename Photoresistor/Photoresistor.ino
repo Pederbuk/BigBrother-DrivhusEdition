@@ -1,7 +1,7 @@
 int photoPin = A0;
 
 void setup() {
-  //pinMode(photoPin, OUTPUT);
+  pinMode(photoPin, OUTPUT);
   Serial.begin(9600);
 }
 
