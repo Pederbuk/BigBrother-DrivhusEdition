@@ -184,3 +184,14 @@ void PrintOnScreen(){
   lcd.setCursor(13,1);
   lcd.print("%RH");
 }
+
+
+//Funksjon for å starte pumpa
+void StartPump(){
+  digitalWrite(relePin, HIGH);
+}
+
+//Funksjon for å stoppe punpa
+void StopPump(){
+  digitalWrite(relePin, LOW);
+}
