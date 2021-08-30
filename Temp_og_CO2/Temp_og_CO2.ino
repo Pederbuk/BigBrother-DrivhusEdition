@@ -1,15 +1,3 @@
-/*******************Demo for MG-811 Gas Sensor Module V1.1*****************************
-Author:  Tiequan Shao: tiequan.shao@sandboxelectronics.com
-         Peng Wei:     peng.wei@sandboxelectronics.com
-
-Lisence: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
-
-Note:    This piece of source code is supposed to be used as a demostration ONLY. More
-         sophisticated calibration is required for industrial field application. 
-
-                                                    Sandbox Electronics    2012-05-31
-************************************************************************************/
-
 /************************Hardware Related Macros************************************/
 #define         MG_PIN                       (0)     //define which analog input channel you are going to use
 #define         BOOL_PIN                     (2)
@@ -47,6 +35,20 @@ float           CO2Curve[3]  =  {2.602,ZERO_POINT_VOLTAGE,(REACTION_VOLTGAE/(2.6
                                                      //data format:{ x, y, slope}; point1: (lg400, 0.324), point2: (lg4000, 0.280) 
                                                      //slope = ( reaction voltage ) / (log400 –log1000) 
 
+//Soilpin
+int soilpin = A3;
+
+//Temp and hum
+float temp(){
+  return dht.readTemperature();
+}
+float hum(){
+  return dht.readHumidity();
+}
+
+//Water pump
+int relePin = 2;
+
 void setup()
 {
 
@@ -57,7 +59,7 @@ void setup()
     pinMode(BOOL_PIN, INPUT);                        //set pin to input
     digitalWrite(BOOL_PIN, HIGH);                    //turn on pullup resistors
 
-   Serial.print("MG-811 Demostration\n");                
+    pinMode(relePin, OUTPUT);     //Assigns the relepin as output
 }
 
 void loop()
@@ -66,6 +68,7 @@ void loop()
     float volts;
     int value = analogRead(A1); 
 
+    
     volts = MGRead(MG_PIN);
     Serial.print( "SEN-00007:" );
     Serial.print(volts); 
@@ -83,6 +86,28 @@ void loop()
     Serial.print("\n");
     Serial.print("Analog Value :");
     Serial.println(value);
+    Serial.print("Jordfunktighet: ");
+    Serial.println(analogRead(soilpin));
+
+    Serial.print("Temp: ");
+    Serial.print(temp());
+    Serial.println(" *C"); 
+    Serial.print("Hum: ");
+    Serial.print(hum());
+    Serial.println(" %RH");
+/*
+    lcd.setCursor(8,0);  
+    lcd.print(t);  
+    lcd.setCursor(13,0);  
+    lcd.print("*C");  
+    lcd.setCursor(0,1);  
+    lcd.print("Hum :");  
+    lcd.setCursor(8,1);  
+    lcd.print(h);  
+    lcd.setCursor(13,1);
+    lcd.print("%RH");
+*/
+
 
     if (digitalRead(BOOL_PIN) ){
         Serial.print( "=====BOOL is HIGH======" );
@@ -138,13 +163,6 @@ int  MGGetPercentage(float volts, float *pcurve)
    }
 }
 
-//Funksjoner for å hente ut data
-float temp(){
-  return dht.readTemperature();
-}
-float hum(){
-  return dht.readHumidity();
-}
 
 //Funksjon for å printe på lcd skjerm
 void PrintOnScreen(){
