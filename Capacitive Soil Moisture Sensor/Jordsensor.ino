@@ -9,19 +9,6 @@ void loop() {
 soilMoistureValue = analogRead(A0);  //put Sensor insert into soil
 Serial.println(soilMoistureValue);
 soilmoisturepercent = map(soilMoistureValue, AirValue, WaterValue, 0, 100);
-if(soilmoisturepercent >= 100)
-{
-  Serial.println("100 %");
-}
-else if(soilmoisturepercent <=0)
-{
-  Serial.println("0 %");
-}
-else if(soilmoisturepercent >0 && soilmoisturepercent < 100)
-{
-  Serial.print(soilmoisturepercent);
-  Serial.println("%");
-  
-}
-  delay(1000);
+Serial.print(soilmoisturepercent);
+Serial.println("%");
 }
