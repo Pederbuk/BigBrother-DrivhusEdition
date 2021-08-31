@@ -1,12 +1,12 @@
-const int AirValue = 609;   //Tallene sensoren får i luft
-const int WaterValue = 256;  //Tallene sensoren får i vann
+const int AirValue = 609;   //Air values from test
+const int WaterValue = 256;  //Water values from test
 int soilMoistureValue = 0;
-int soilmoisturepercent=0;
+int soilmoisturepercent=0;  
 void setup() {
-  Serial.begin(9600); // open serial port, set the baud rate to 9600 bps
+  Serial.begin(9600);
 }
 void loop() {
-  soilMoistureValue = analogRead(A0);  //put Sensor insert into soil
+  soilMoistureValue = analogRead(A0);
   Serial.println(soilMoistureValue);
   soilmoisturepercent = map(soilMoistureValue, AirValue, WaterValue, 0, 100);
   Serial.print(soilmoisturepercent);
