@@ -52,7 +52,7 @@ void loop() {
   Serial.println(jordfukt);
   Serial.println(CO2);
   
-  if (jordfukt > 0){
+  if (50 > jordfukt > 0){
     needWater = needWater + 1;
     if (needWater >= waitTime){
       digitalWrite(relePin, HIGH);
