@@ -2,51 +2,56 @@
 #include "thingProperties.h" //Inkluderer filer fra Arduino Cloud 
 #include <DHT.h> 
 #define DHTPIN 3    //Definerer og inkulderer DHT sensor og bibliotek
-#define DHTTYPE 11
-#define MG_PIN                (0)     //Definerer forskjellige pins for CO2 sensoren
-#define DC_GAIN               (8.5) 
-#define READ_SAMPLE_INTERVAL  (50) 
-#define READ_SAMPLE_TIMES     (50) 
-#define ZERO_POINT_VOLTAGE    (3.940) //Setter referanse verdier til CO2 sensoren
-#define REACTION_VOLTGAE      (1.940) 
+#define DHTTYPE 11  //Hvilken type DHT sensor vi bruker
+#define MG_PIN                (0)    //Definerer hvilken pin som kommuniserer med CO2 sensoren
+#define DC_GAIN               (8.5)  //DC_GAIN = V_output / V_input
+#define READ_SAMPLE_INTERVAL  (50)   //Tidsinterval mellom målinger
+#define READ_SAMPLE_TIMES     (50)   //Antall målinger i hver opperasjon
+#define ZERO_POINT_VOLTAGE    (3.940) //Setter referanse verdier til CO2 sensoren på 400ppm
+#define REACTION_VOLTGAE      (1.940) //Hvor mye volten faller fra 400ppm til 1000ppm
 
 DHT dht(DHTPIN,DHTTYPE);
-int photoPin = A2;      //lyssensor pin
+int photoPin = A2;      //Lyssensor pin
 int airvalue = 1023;    //Jordfuktsmåleren sine verider i luft
 int watervalue = 433;   //Jordfuktsmåleren sine verider i vann
 int soilmoisttpin = A1; //Jordfuktsmåleren pin
 int relePin = 2;        //Rele pin
-float CO2Curve[3] = {2.602,ZERO_POINT_VOLTAGE,(REACTION_VOLTGAE/(2.602-3))}; //
+float CO2Curve[3] = {2.602,ZERO_POINT_VOLTAGE,(REACTION_VOLTGAE/(2.602-3))}; //Tar to punkter fra kurven og trekker en linje
+                                                                             //som er omtrent lik den orginale kurven
 
 void setup() {
-  pinMode(photoPin, OUTPUT);  //Definerer pinen som en output verdi
-  pinMode(relePin, OUTPUT);
   Serial.begin(9600);         //Lager en kontakt mellom pc og Arduino MKR
   dht.begin();                //Starter DHT sensorens fobindelse
   delay(1500); 
   initProperties();
+  pinMode(photoPin, OUTPUT);  //Definerer pinen som en output verdi
+  pinMode(relePin, OUTPUT);
+
   ArduinoCloud.begin(ArduinoIoTPreferredConnection);
   setDebugMessageLevel(2);
   ArduinoCloud.printDebugInfo();
 }
 
-int needWater = 0;  //
-int waitTime = 5;   //
+int needWater = 0;  //Teller antall målinger hvor den trenger vann
+int waitTime = 5;   //needWater må nå dette tallet for å ungå feilvanning
 
 void loop() {
   ArduinoCloud.update();
   float Temp = dht.readTemperature();   //Definerer de forskjellige variablene
   float Hum = dht.readHumidity();
-  int readvalue = analogRead(photoPin);
-  int sensorValue = analogRead(soilmoisttpin);
+  int lysvalue = analogRead(photoPin);
+  int soilValue = analogRead(soilmoisttpin);
   float volts = MGRead(MG_PIN);
   int percentage = MGGetPercentage(volts,CO2Curve);
-  jordfukt = map(sensorValue, airvalue, watervalue, 0, 100);
+  
+  jordfukt = map(soilValue, airvalue, watervalue, 0, 100);
   temperatur = Temp;  //Overfører de forskjellige variablene til Arduino Cloud variabler
   LuftFukt = Hum;
-  lys = readvalue;
+  lys = lysvalue;
   CO2 = percentage;
-  Serial.println(lys);  //Printer de forksjellige verdiene for å kontrollere at data blir overført til Arduino cloud 
+  Serial.println(lys);  //Printer de forksjellige verdiene for å kontrollere at data blir overført til Arduino cloud
+  
+  //Printer verdier til Serial for overvåking av flere variabler
   Serial.println(LuftFukt);
   Serial.println(temperatur);
   Serial.println(jordfukt);
@@ -67,6 +72,7 @@ void loop() {
   delay(1000);
 }
 
+//Leser av voltverdien fra MG811 sensoren
 float MGRead(int mg_pin)
 {
     int i;
@@ -80,6 +86,7 @@ float MGRead(int mg_pin)
     return v;  
 }
 
+//Bruker en formel til å gjøre om et punkt på kurven til CO2 ppm
 int  MGGetPercentage(float volts, float *pcurve)
 {
    if ((volts/DC_GAIN )>=ZERO_POINT_VOLTAGE) {
